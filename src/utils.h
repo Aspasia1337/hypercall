@@ -5,8 +5,8 @@
 #define MAXMSG 256
 #define IOCTL_GET_MESSAGE CTL_CODE(0x8000, 0x800, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
-char gMessageBuffer[MAXMSG] = { 0 };
-BOOLEAN gHasMessage = 0;
+extern char gMessageBuffer[MAXMSG];
+extern BOOLEAN gHasMessage;
 
 void SendMessage(const char* message);
 
