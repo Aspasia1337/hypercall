@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hypercall", "hypercall.vcxproj", "{46167816-C055-5D33-7F8F-4599DDBD4579}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UserCall", "UserCall\UserCall.vcxproj", "{E37374EF-E676-4507-9569-BB3A816145B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -25,6 +27,14 @@ Global
 		{46167816-C055-5D33-7F8F-4599DDBD4579}.Release|x64.ActiveCfg = Release|x64
 		{46167816-C055-5D33-7F8F-4599DDBD4579}.Release|x64.Build.0 = Release|x64
 		{46167816-C055-5D33-7F8F-4599DDBD4579}.Release|x64.Deploy.0 = Release|x64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Debug|ARM64.Build.0 = Debug|ARM64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Debug|x64.ActiveCfg = Debug|x64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Debug|x64.Build.0 = Debug|x64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Release|ARM64.ActiveCfg = Release|ARM64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Release|ARM64.Build.0 = Release|ARM64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Release|x64.ActiveCfg = Release|x64
+		{E37374EF-E676-4507-9569-BB3A816145B8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

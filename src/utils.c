@@ -1,7 +1,7 @@
 #include "utils.h"
 
-extern char gMessageBuffer[MAXMSG];
-extern BOOLEAN gHasMessage;
+char gMessageBuffer[MAXMSG];
+BOOLEAN gHasMessage;
 
 void SendMessage(const char* message) {
 	RtlStringCchCopyA(gMessageBuffer, MAXMSG, message);

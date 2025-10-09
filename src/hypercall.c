@@ -3,6 +3,8 @@
 
 VOID Unload(PDRIVER_OBJECT pDrivObject) {
 	UNICODE_STRING symLink = RTL_CONSTANT_STRING(L"\\DosDevices\\hypercall");
+	
+	SendMessage("Unloading driver\n");
 
 	IoDeleteSymbolicLink(&symLink);
 	IoDeleteDevice(pDrivObject->DeviceObject);
