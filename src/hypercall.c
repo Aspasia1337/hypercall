@@ -1,9 +1,38 @@
 ﻿#include "hypercall.h"
 #include "utils.h"
+#include "Features/modEnum.h"
+
+PKTHREAD g_Thread = NULL;
+volatile BOOLEAN g_StopThread = 0;
+
+VOID ThreadRoutine(PVOID context) {
+	UNREFERENCED_PARAMETER(context);
+
+	LONGLONG interval;
+	interval = -50000000LL;
+
+	KeDelayExecutionThread(KernelMode, FALSE, (PLARGE_INTEGER)&interval);
+
+	moduleEnumeration();
+
+	PsTerminateSystemThread(STATUS_SUCCESS);
+}
 
 VOID Unload(PDRIVER_OBJECT pDrivObject) {
 	UNICODE_STRING symLink = RTL_CONSTANT_STRING(L"\\DosDevices\\hypercall");
 	
+	if (g_Thread) {
+		g_StopThread = 1;
+
+		LONGLONG timeout = -10000000000LL;
+
+		KeWaitForSingleObject(g_Thread, Executive, KernelMode, FALSE, (PLARGE_INTEGER)&timeout);
+
+		ObDereferenceObject(g_Thread);
+		g_Thread = NULL;
+
+	}
+
 	SendMessage("Unloading driver\n");
 
 	IoDeleteSymbolicLink(&symLink);
@@ -16,7 +45,11 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDrivObject, PUNICODE_STRING pRegPath) {
 	PDEVICE_OBJECT pDevObject;
 	NTSTATUS status;
 
+	HANDLE hTread;
+
 	UNREFERENCED_PARAMETER(pRegPath);
+
+	InitializeMessageSystem(); 
 
 	status = IoCreateDevice(pDrivObject, 0, &deviceName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN,
 		FALSE, &pDevObject);
@@ -36,5 +69,17 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDrivObject, PUNICODE_STRING pRegPath) {
 	pDrivObject->DriverUnload = Unload;
 
 	SendMessage("*** Hypercall Started ***\n");
+
+
+	g_StopThread = 0;
+
+	status = PsCreateSystemThread(&hTread, THREAD_ALL_ACCESS, NULL, NULL, NULL, ThreadRoutine, NULL);
+
+	if (NT_SUCCESS(status)) {
+		// Convert handle to real pointer
+		status = ObReferenceObjectByHandle(hTread, THREAD_ALL_ACCESS, NULL, KernelMode, (PVOID*)&g_Thread, NULL);
+		ZwClose(hTread);
+	}
+
 	return STATUS_SUCCESS;
 }
