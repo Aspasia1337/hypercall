@@ -20,11 +20,11 @@ int main() {
 		return -1;
 	}
 
-	printf("\n\t UserCall listening! \n");
+	printf("\n\t UserCall listening! \n\n");
 	while(1) {
 		memset(message, 0, sizeof(message));
 		if (DeviceIoControl(hDevice, IOCTL_GET_MESSAGE, NULL, 0, message, sizeof(message), &bytesReturned, NULL)) {
-			if (!bytesReturned && message[0] != '\0')
+			if (bytesReturned > 0 && message[0] != '\0')
 				printf("[HYPERCALL] : %s\n", message);
 		}
 		else {
