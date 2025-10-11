@@ -1,6 +1,4 @@
 ﻿#include "hypercall.h"
-#include "utils.h"
-#include "Features/modEnum.h"
 
 PKTHREAD g_Thread = NULL;
 volatile BOOLEAN g_StopThread = 0;
@@ -33,7 +31,7 @@ VOID Unload(PDRIVER_OBJECT pDrivObject) {
 
 	}
 
-	SendMessage("Unloading driver\n");
+	EnqueueMessage("Unloading driver\n");
 
 	IoDeleteSymbolicLink(&symLink);
 	IoDeleteDevice(pDrivObject->DeviceObject);
@@ -49,7 +47,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDrivObject, PUNICODE_STRING pRegPath) {
 
 	UNREFERENCED_PARAMETER(pRegPath);
 
-	InitializeMessageSystem(); 
+	InitQueue();
 
 	status = IoCreateDevice(pDrivObject, 0, &deviceName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN,
 		FALSE, &pDevObject);
@@ -68,7 +66,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDrivObject, PUNICODE_STRING pRegPath) {
 	pDrivObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DeviceController;
 	pDrivObject->DriverUnload = Unload;
 
-	SendMessage("*** Hypercall Started ***\n");
+	EnqueueMessage("*** Hypercall Started ***\n");
 
 
 	g_StopThread = 0;

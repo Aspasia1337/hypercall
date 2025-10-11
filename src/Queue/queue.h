@@ -1,3 +1,5 @@
+#pragma once
+
 #include <ntddk.h>
 #include <ntstrsafe.h>
 
@@ -15,6 +17,6 @@ extern MESSAGE_QUEUE gQueue;
 extern KSPIN_LOCK gQueueLock;
 extern BOOLEAN gQueueInitialized;
 
-void InitMessageQueue(void);
+void InitQueue(void);
 BOOLEAN EnqueueMessage(const char*);
 BOOLEAN DequeueMessage(char* outbuffer, ULONG bufferSize);

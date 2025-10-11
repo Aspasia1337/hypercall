@@ -5,15 +5,12 @@ KSPIN_LOCK gQueueLock;
 BOOLEAN gQueueInitialized;
 
 void InitQueue(void) {
-	KIRQL IRQ;
 	if (!gQueueInitialized) {
 		KeInitializeSpinLock(&gQueueLock);
-		KeAcquireSpinLock(&gQueueLock, &IRQ);
-		gQueueInitialized = 1;
 		gQueue.Count = 0;
 		gQueue.ReadIndex = 0;
 		gQueue.WriteIndex = 0;
-		KeReleaseSpinLock(&gQueueLock, IRQ);
+		gQueueInitialized = 1;
 	}
 }
 
@@ -22,8 +19,10 @@ BOOLEAN EnqueueMessage(const char* message) {
 	
 	KeAcquireSpinLock(&gQueueLock, &IRQ);
 
-	if (!gQueueInitialized)
+	if (!gQueueInitialized) {
+		KeReleaseSpinLock(&gQueueLock, IRQ);
 		return 0;
+	}
 
 	if (gQueue.Count >= MAXMSG) {
 		gQueue.ReadIndex = (gQueue.ReadIndex + 1) % MAXMSG;
@@ -44,10 +43,13 @@ BOOLEAN DequeueMessage(char* outbuffer, ULONG bufferSize) {
 
 	KeAcquireSpinLock(&gQueueLock, &IRQ);
 
-	if (!gQueueInitialized)
+	if (!gQueueInitialized) {
+		KeReleaseSpinLock(&gQueueLock, IRQ);
 		return 0;
+	}
 
 	if (gQueue.Count == 0) {
+		KeReleaseSpinLock(&gQueueLock, IRQ);
 		return 0;
 	}
 

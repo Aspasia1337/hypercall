@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../common.h"
-#include "../utils.h"
+#include "../Device/device.h"
+#include "../Queue/queue.h"
 
 void moduleEnumeration(void);
 

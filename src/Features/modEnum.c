@@ -10,7 +10,7 @@ void moduleEnumeration(void) {
 	// Trick for getting the size of the buffer
 
 	if(status != STATUS_INFO_LENGTH_MISMATCH) {
-		SendMessage("Error getting the size of the buffer in ZwQuerySystemInformation\n");
+		EnqueueMessage("Error getting the size of the buffer in ZwQuerySystemInformation\n");
 		return;
 	}
 
@@ -19,7 +19,7 @@ void moduleEnumeration(void) {
 	status = ZwQuerySystemInformation(SystemModuleInformation, buffer, size, &size);
 
 	if(!NT_SUCCESS(status)){
-		SendMessage("Error getting System Information from the ZwQuerySystemInformation call\n");
+		EnqueueMessage("Error getting System Information from the ZwQuerySystemInformation call\n");
 		ExFreePoolWithTag(buffer, 'buff');
 		return;
 	}
@@ -27,11 +27,13 @@ void moduleEnumeration(void) {
 	PSYSTEM_MODULE_INFORMATION modInfo = (PSYSTEM_MODULE_INFORMATION)buffer;
 	PSYSTEM_MODULE_ENTRY mod;
 
+
 	for(ULONG i = 0; i < modInfo->Count; i++) {
 		mod = &modInfo->Module[i];
 		const char* name = (const char*)(mod->FullPathName + mod->OffsetToFileName);
-		SendMessage(name);
+		EnqueueMessage(name);
 	}
+
 
 	ExFreePoolWithTag(buffer, 'buff');
 }
