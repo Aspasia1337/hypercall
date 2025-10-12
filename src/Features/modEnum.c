@@ -1,5 +1,7 @@
 #include "modEnum.h"
 
+SYSTEM_MODULE_ENTRY gModuleList[MAXMODULES] = { 0 };
+
 void moduleEnumeration(void) {
 	NTSTATUS status;
 	ULONG size = 0;
@@ -25,15 +27,12 @@ void moduleEnumeration(void) {
 	}
 
 	PSYSTEM_MODULE_INFORMATION modInfo = (PSYSTEM_MODULE_INFORMATION)buffer;
-	PSYSTEM_MODULE_ENTRY mod;
-
 
 	for(ULONG i = 0; i < modInfo->Count; i++) {
-		mod = &modInfo->Module[i];
-		const char* name = (const char*)(mod->FullPathName + mod->OffsetToFileName);
-		EnqueueMessage(name);
+		gModuleList[i] = modInfo->Module[i];
+		const char* modName = (const char*)((gModuleList[i]).FullPathName + (gModuleList[i]).OffsetToFileName);
+		EnqueueMessage(modName);
 	}
-
 
 	ExFreePoolWithTag(buffer, 'buff');
 }

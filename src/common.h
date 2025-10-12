@@ -2,10 +2,14 @@
 
 #include <ntddk.h>
 
+// https://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/ex/sysinfo/query.htm
+
 typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemBasicInformation = 0,
     SystemModuleInformation = 11,
 } SYSTEM_INFORMATION_CLASS;
+
+// https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntldr/rtl_process_module_information.htm
 
 typedef struct _SYSTEM_MODULE_ENTRY {
     HANDLE Section;
@@ -19,6 +23,8 @@ typedef struct _SYSTEM_MODULE_ENTRY {
     USHORT OffsetToFileName;
     UCHAR  FullPathName[256];
 } SYSTEM_MODULE_ENTRY, * PSYSTEM_MODULE_ENTRY;
+
+// https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntldr/rtl_process_modules.htm
 
 typedef struct _SYSTEM_MODULE_INFORMATION {
     ULONG Count;
