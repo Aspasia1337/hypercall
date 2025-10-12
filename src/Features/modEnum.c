@@ -2,7 +2,7 @@
 
 SYSTEM_MODULE_ENTRY gModuleList[MAXMODULES] = { 0 };
 
-void moduleEnumeration(void) {
+VOID moduleEnumeration(void) {
 	NTSTATUS status;
 	ULONG size = 0;
 	PVOID buffer = 0;
@@ -30,9 +30,29 @@ void moduleEnumeration(void) {
 
 	for(ULONG i = 0; i < modInfo->Count; i++) {
 		gModuleList[i] = modInfo->Module[i];
-		const char* modName = (const char*)((gModuleList[i]).FullPathName + (gModuleList[i]).OffsetToFileName);
-		EnqueueMessage(modName);
+		PrintModuleInfo(gModuleList[i]);
 	}
 
 	ExFreePoolWithTag(buffer, 'buff');
 }
+
+VOID PrintModuleInfo(SYSTEM_MODULE_ENTRY Module) {
+	const char *modName = (const char *)(Module.FullPathName + Module.OffsetToFileName);
+	char finalMessage[1024] = { 0 };
+	
+	NTSTATUS status;
+
+	status = RtlStringCbPrintfA(
+		finalMessage,
+		sizeof(finalMessage),
+		"%s\n\t      imageBase : 0x%p\n\t      modSize : %llx\n",
+		modName, 
+		Module.ImageBase, 
+		(ULONG64)Module.ImageSize);
+
+	if (!NT_SUCCESS(status)) {
+		EnqueueMessage("Error printing mod info\n");
+	}
+	EnqueueMessage(finalMessage);
+}
+
