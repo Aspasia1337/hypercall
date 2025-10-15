@@ -8,10 +8,11 @@ VOID ThreadRoutine(PVOID context) {
 
 	LONGLONG interval;
 	interval = -50000000LL;
-
-	KeDelayExecutionThread(KernelMode, FALSE, (PLARGE_INTEGER)&interval);
-
-	moduleEnumeration();
+	
+	while (!g_StopThread) {
+		KeDelayExecutionThread(KernelMode, FALSE, (PLARGE_INTEGER)&interval);
+		moduleEnumeration();
+	}
 
 	PsTerminateSystemThread(STATUS_SUCCESS);
 }
