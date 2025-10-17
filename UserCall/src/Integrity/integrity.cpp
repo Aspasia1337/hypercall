@@ -71,5 +71,39 @@ BOOL FindTextSection(HMODULE Module, BYTE** TextStart, uint32_t* Size)
 }
 
 
+BOOLEAN HashTextSection(BYTE HashResult[32]) {
+
+	HMODULE mainHandle = 0;
+	BYTE* textPointer = 0;
+	uint32_t sectionSize = 0;
+
+	mainHandle = GetModuleHandle(NULL);
+
+	printf("Module handle : %p\n", mainHandle);
+
+	if (!mainHandle) {
+		printf("Error getting text section handle\n");
+		return 0;
+	}
+
+	if (!FindTextSection(mainHandle, &textPointer, &sectionSize)) {
+		printf("Error finding text section of the handle\n");
+		return 0;
+	}
 
 
+	if (!CalculateHash(textPointer, sectionSize, HashResult)) {
+		printf("Error calculating the hash of the text section\n");
+		return 0;
+	}
+
+	PrintTextSection(textPointer, sectionSize);
+
+	return 1;
+}
+
+VOID PrintTextSection(BYTE* TextSection, uint32_t SectionSize) {
+	for (int i = 0; i < SectionSize; i++) {
+		printf("%02X", TextSection[i]);
+	}
+}
