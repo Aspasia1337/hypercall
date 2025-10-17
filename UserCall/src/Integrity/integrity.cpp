@@ -1,5 +1,7 @@
 #include "integrity.h"
 
+#pragma comment (lib,"bcrypt.lib")
+
 BOOL CalculateHash(BYTE* Memory, int Size, BYTE Result[32]) {
 	BCRYPT_ALG_HANDLE hAlg = NULL;
 	BCRYPT_HASH_HANDLE hHash = NULL;

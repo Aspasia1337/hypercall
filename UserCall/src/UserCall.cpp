@@ -19,6 +19,7 @@ BOOL APIENTRY DllMain(HMODULE Hmodule, DWORD FdwReason, LPVOID LpREserved) {
 		break;
 	}
 	case DLL_PROCESS_DETACH:
+		printf("DEALLOC");
 		FreeConsole();
 		break;
 	}
