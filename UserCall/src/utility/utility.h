@@ -4,8 +4,15 @@
 #include <TlHelp32.h>
 #include <cstdint>
 
+enum LogLevel : int{
+    LOG_ERROR = 0,
+    LOG_SUCCESS,
+    LOG_INFO,
+};
+
 class UtilityClass {
 public:
+
     UtilityClass();                    
     ~UtilityClass() = default;
 
@@ -13,6 +20,8 @@ public:
 
     BOOL FindTextSection(HMODULE Module, BYTE** TextStart, uint32_t* Size);
     BOOL GetProcessModules();
+
+    void Log(LogLevel level, const char* message, ...);
 
     HANDLE GetProcessHandle() const { return g_ProcessHandle; }
     DWORD  GetPid() const { return g_Pid; }
@@ -23,7 +32,9 @@ private:
     HANDLE g_ProcessHandle = nullptr;
     DWORD  g_Pid = 0;
     std::vector<MODULEENTRY32> g_ModuleList;
-    BOOL g_UtilityInitialized;
+    BOOL g_UtilityInitialized = 1;
+
+
 };
 
 inline UtilityClass m_Utility;

@@ -5,14 +5,9 @@ HMODULE g_ProcessHandle;
 DWORD g_Pid;
 std::vector<MODULEENTRY32> g_ModuleList;
 
-enum LogLevel {
-	LOG_ERROR = 0,
-	LOG_SUCCESS,
-	LOG_INFO,
-};
 
 
-static void Log(LogLevel level, const char* message, ...)
+void UtilityClass::Log(LogLevel level, const char* message, ...)
 {
 	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -30,8 +25,8 @@ static void Log(LogLevel level, const char* message, ...)
 	}
 
 	const char* tag =
-		(level == LOG_ERROR) ? "[ERROR]" :
-		(level == LOG_SUCCESS) ? "[SUCCESS]" :
+		(level == LOG_ERROR) ? "[-]" :
+		(level == LOG_SUCCESS) ? "[+]" :
 		"[INFO]";
 
 	printf("%s ", tag);
@@ -50,37 +45,37 @@ UtilityClass::UtilityClass()
 	g_ModuleList.clear();
 
 	if (!SetUpConsole()) {
-		Log(LOG_ERROR, "[UTILITY] Error setting up console");
+		UtilityClass::Log(LOG_ERROR, "[UTILITY] Error setting up console");
 		g_UtilityInitialized = FALSE;
 	}
 	else {
-		Log(LOG_SUCCESS, "[UTILITY] Console initialized");
+		UtilityClass::Log(LOG_SUCCESS, "[UTILITY] Console initialized");
 	}
 
 	g_ProcessHandle = GetModuleHandle(NULL);
 	if (g_ProcessHandle == INVALID_HANDLE_VALUE) {
-		Log(LOG_ERROR, "[UTILITY] Error initializing Userland - ProcessHandle");
+		UtilityClass::Log(LOG_ERROR, "[UTILITY] Error initializing Userland - ProcessHandle");
 		g_UtilityInitialized = FALSE;
 	}
 	else {
-		Log(LOG_SUCCESS, "[UTILITY] Process handle OK (%p)", g_ProcessHandle);
+		UtilityClass::Log(LOG_SUCCESS, "[UTILITY] Process handle OK (%p)", g_ProcessHandle);
 	}
 
 	g_Pid = GetCurrentProcessId();
 	if (g_Pid == 0) {
-		Log(LOG_ERROR, "[UTILITY] Error initializing Userland - ProcessId");
+		UtilityClass::Log(LOG_ERROR, "[UTILITY] Error initializing Userland - ProcessId");
 		g_UtilityInitialized = FALSE;
 	}
 	else {
-		Log(LOG_SUCCESS, "[UTILITY] Process ID: %lu", g_Pid);
+		UtilityClass::Log(LOG_SUCCESS, "[UTILITY] Process ID: %lu", g_Pid);
 	}
 
 	if (!GetProcessModules()) {
-		Log(LOG_ERROR, "[UTILITY] Error enumerating process modules");
+		UtilityClass::Log(LOG_ERROR, "[UTILITY] Error enumerating process modules");
 		g_UtilityInitialized = FALSE;
 	}
 	else {
-		Log(LOG_SUCCESS, "[UTILITY] Module enumeration completed successfully");
+		UtilityClass::Log(LOG_SUCCESS, "[UTILITY] Module enumeration completed successfully");
 	}
 }
 
@@ -110,7 +105,7 @@ BOOL UtilityClass::FindTextSection(HMODULE Module, BYTE** TextStart, uint32_t* S
 		}
 	}
 
-	Log(LOG_ERROR, "[UTILITY] .text section not found in module");
+	UtilityClass::Log(LOG_ERROR, "[UTILITY] .text section not found in module");
 	return FALSE;
 }
 
@@ -122,7 +117,7 @@ BOOL UtilityClass::GetProcessModules()
 
 	snapshotHandle = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, g_Pid);
 	if (snapshotHandle == INVALID_HANDLE_VALUE) {
-		Log(LOG_ERROR, "[UTILITY] Error getting process modules");
+		UtilityClass::Log(LOG_ERROR, "[UTILITY] Error getting process modules");
 		return FALSE;
 	}
 
@@ -138,11 +133,11 @@ BOOL UtilityClass::GetProcessModules()
 	CloseHandle(snapshotHandle);
 
 	if (g_ModuleList.empty()) {
-		Log(LOG_ERROR, "[UTILITY] No modules found");
+		UtilityClass::Log(LOG_ERROR, "[UTILITY] No modules found");
 		return FALSE;
 	}
 
-	Log(LOG_SUCCESS, "[UTILITY] Total modules: %zu", g_ModuleList.size());
+	UtilityClass::Log(LOG_SUCCESS, "[UTILITY] Total modules: %zu", g_ModuleList.size());
 	return TRUE;
 }
 
