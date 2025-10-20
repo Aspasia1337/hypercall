@@ -43,6 +43,7 @@ void UtilityClass::Log(LogLevel level, const char* message, ...)
 UtilityClass::UtilityClass()
 {
 	g_ModuleList.clear();
+	
 
 	if (!SetUpConsole()) {
 		UtilityClass::Log(LOG_ERROR, "[UTILITY] Error setting up console");
@@ -153,4 +154,33 @@ BOOL UtilityClass::SetUpConsole()
 		return TRUE;
 	}
 	return FALSE;
+}
+
+static void PrintHash(const std::array<BYTE, 32>& hash) {
+	for (BYTE b : hash) {
+		std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)b;
+	}
+	std::cout << std::dec << std::endl; 
+}
+
+BOOL UtilityClass::HashModules() {
+	if (g_ModuleList.empty()) {
+		m_Utility.Log(LOG_INFO, "No modules to hash");
+		return FALSE;
+	}
+
+
+	g_Hashes.resize(g_ModuleList.size());
+
+	for (auto i = 0; i < g_ModuleList.size(); ++i) {
+		if (!m_Integrity.HashTextSection(g_ModuleList[i].hModule, g_Hashes[i].data())) {
+			m_Utility.Log(LOG_ERROR, "Failed to hash module: %ls", g_ModuleList[i].szModule);
+		}
+		else {
+			m_Utility.Log(LOG_SUCCESS, "Module %ls hashed successfully", g_ModuleList[i].szModule);
+			PrintHash(g_Hashes[i]);
+		}
+	}
+
+	return TRUE;
 }

@@ -49,22 +49,23 @@ BOOL IntegrityClass::CalculateHash(BYTE* Memory, int Size, BYTE Result[32]) {
 }
 
 
-BOOL IntegrityClass::HashTextSection(BYTE HashResult[32]) {
+BOOL IntegrityClass::HashTextSection(HMODULE Handle, BYTE HashResult[32]) {
 
-	HMODULE mainHandle = 0;
 	BYTE* textPointer = 0;
 	uint32_t sectionSize = 0;
 
-	mainHandle = GetModuleHandle(NULL);
+	if (Handle == NULL) {
+		Handle = GetModuleHandle(NULL);
+	}
 
 	//m_Utility.Log(LOG_INFO,"Module handle : %p\n", mainHandle);
 
-	if (!mainHandle) {
+	if (!Handle) {
 		m_Utility.Log(LOG_ERROR, "[INTEGRITY] Error getting text section handle\n");
 		return 0;
 	}
 
-	if (!m_Utility.FindTextSection(mainHandle, &textPointer, &sectionSize)) {
+	if (!m_Utility.FindTextSection(Handle, &textPointer, &sectionSize)) {
 		m_Utility.Log(LOG_ERROR, "[INTEGRITY] Error finding text section of the handle\n");
 		return 0;
 	}
@@ -76,6 +77,7 @@ BOOL IntegrityClass::HashTextSection(BYTE HashResult[32]) {
 	}
 
 	//PrintTextSection(textPointer, sectionSize);
+
 
 	return 1;
 }

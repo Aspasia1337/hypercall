@@ -12,11 +12,9 @@ public:
 	~IntegrityClass() = default;
 
 	BOOL CalculateHash(BYTE* Memory, int Size, BYTE Result[32]);
-	BOOL HashTextSection(BYTE HashResult[32]);
+	BOOL HashTextSection(HMODULE Handle, BYTE HashResult[32]);
 	VOID PrintTextSection(BYTE* TextSection, uint32_t SectionSize);
-
-private :
-	std::vector<BYTE [32]> g_ModuleList;
+	
 };
 
 inline IntegrityClass m_Integrity;
