@@ -1,4 +1,5 @@
 ﻿#include "utility.h"
+#include <unordered_set>
 
 BOOL g_UtilityInitialized = TRUE;
 HMODULE g_ProcessHandle;
@@ -101,7 +102,7 @@ BOOL UtilityClass::FindTextSection(HMODULE Module, BYTE** TextStart, uint32_t* S
 		{
 			*TextStart = (BYTE*)Module + section->VirtualAddress;
 			*Size = section->Misc.VirtualSize;
-			//Log(LOG_INFO, "[UTILITY] Found .text section at %p (size: %u bytes)", *TextStart, *Size);
+			//Log(LOG_INFO, "[UTILITY] Found .text section at %p (size: %u bytes) ", *TextStart, *Size);
 			return TRUE;
 		}
 	}
@@ -138,7 +139,7 @@ BOOL UtilityClass::GetProcessModules()
 		return FALSE;
 	}
 
-	UtilityClass::Log(LOG_SUCCESS, "[UTILITY] Total modules: %zu", g_ModuleList.size());
+	//UtilityClass::Log(LOG_SUCCESS, "[UTILITY] Total modules: %zu", g_ModuleList.size());
 	return TRUE;
 }
 
@@ -163,24 +164,51 @@ static void PrintHash(const std::array<BYTE, 32>& hash) {
 	std::cout << std::dec << std::endl; 
 }
 
-BOOL UtilityClass::HashModules() {
-	if (g_ModuleList.empty()) {
-		m_Utility.Log(LOG_INFO, "No modules to hash");
-		return FALSE;
+BOOL UtilityClass::TamperCheck() {
+	
+	std::unordered_set<HMODULE> hModuleSet;
+
+	if (!GetProcessModules()) {
+		m_Utility.Log(LOG_ERROR, "Fail getting modules");
+		return 0;
 	}
-
-
-	g_Hashes.resize(g_ModuleList.size());
-
-	for (auto i = 0; i < g_ModuleList.size(); ++i) {
-		if (!m_Integrity.HashTextSection(g_ModuleList[i].hModule, g_Hashes[i].data())) {
-			m_Utility.Log(LOG_ERROR, "Failed to hash module: %ls", g_ModuleList[i].szModule);
+	
+	if (g_ModuleList.size() > 0) {
+		for (auto i = 0; i < g_ModuleList.size(); i++) {
+			hModuleSet.insert(g_ModuleList[i].hModule);
+			BYTE temporalHash[32] = {};
+			if (m_Integrity.HashTextSection(g_ModuleList[i].hModule, temporalHash)) {
+				auto it = g_ModuleMap.find(g_ModuleList[i].hModule);
+				if (it == g_ModuleMap.end()) {
+					std::array<BYTE, 32> hashArray;
+					memcpy(hashArray.data(), temporalHash, 32);
+					g_ModuleMap.emplace(g_ModuleList[i].hModule, hashArray);
+					m_Utility.Log(LOG_INFO, "New module loaded %ls", g_ModuleList[i].szExePath);
+					continue;
+				}
+				else {
+					if (memcmp(temporalHash, it->second.data(), 32) != 0) {
+						m_Utility.Log(LOG_INFO, "MODULE %ls TAMPERED", g_ModuleList[i].szExePath);
+						memcpy(it->second.data(), temporalHash, 32);
+					}
+				}
+			}
+			else{
+				m_Utility.Log(LOG_ERROR, "[HashModules]Error hashing module %ls ", g_ModuleList[i].szExePath);
+				return FALSE;
+			}
+		}
+	}
+	for (auto it = g_ModuleMap.begin(); it != g_ModuleMap.end();) {
+		if (hModuleSet.find(it->first) == hModuleSet.end()) {
+			m_Utility.Log(LOG_INFO, "Module unloaded ");
+			it = g_ModuleMap.erase(it);
 		}
 		else {
-			m_Utility.Log(LOG_SUCCESS, "Module %ls hashed successfully", g_ModuleList[i].szModule);
-			PrintHash(g_Hashes[i]);
+			it++;
 		}
 	}
 
+	
 	return TRUE;
 }
