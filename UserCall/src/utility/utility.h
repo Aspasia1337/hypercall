@@ -29,20 +29,24 @@ public:
 
     void Log(LogLevel level, const char* message, ...);
 
-    HANDLE GetProcessHandle() const { return g_ProcessHandle; }
+    HMODULE GetHandle() const { return g_ProcessHandle; }
     DWORD  GetPid() const { return g_Pid; }
    // const std::<MODULEENTRY32>& GetModuleList() const { return g_ModuleList; }
     BOOL isInitialized() const { return g_UtilityInitialized; }
     
+    BOOL GetProgamImports();
+
     BOOL TamperCheck();
 
+
+
 private:
-    HANDLE g_ProcessHandle = nullptr;
+    HMODULE g_ProcessHandle = nullptr;
     DWORD  g_Pid = 0;
     
     // Using HMODULE as KEY 
     std::unordered_map <HMODULE, std::array<BYTE, 32>> g_ModuleMap;
-
+    std::array<BYTE, 32> g_ImportedModules;
     std::vector<MODULEENTRY32> g_ModuleList;
     std::vector<std::array<BYTE, 32>> g_Hashes;
     BOOL g_UtilityInitialized = 1;

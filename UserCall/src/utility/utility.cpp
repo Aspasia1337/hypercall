@@ -111,6 +111,7 @@ BOOL UtilityClass::FindTextSection(HMODULE Module, BYTE** TextStart, uint32_t* S
 	return FALSE;
 }
 
+// Modules = DLLs the program imports
 BOOL UtilityClass::GetProcessModules()
 {
 	HANDLE snapshotHandle;
@@ -211,4 +212,76 @@ BOOL UtilityClass::TamperCheck() {
 
 	
 	return TRUE;
+}
+
+// Imports = Functions that the program takes from those DLLs
+BOOL UtilityClass::GetProgamImports() {
+	HMODULE pHandle = GetHandle();
+
+	Log(LOG_INFO, "Starting Imports");
+
+	if (pHandle == INVALID_HANDLE_VALUE) {
+		Log(LOG_ERROR, "[GetProgramImports] Error getting handle");
+		CloseHandle(pHandle);
+		return 0;
+	}
+
+	PIMAGE_DOS_HEADER imageDosHeader = (PIMAGE_DOS_HEADER)pHandle;
+
+	if (imageDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
+		Log(LOG_ERROR, "[GetProgramImports] Not valid image header");
+		CloseHandle(pHandle);
+		return 0;
+	}
+
+	PIMAGE_NT_HEADERS imageNtHeaders = (PIMAGE_NT_HEADERS)((BYTE*)pHandle + imageDosHeader->e_lfanew);
+
+	if (imageNtHeaders->Signature != IMAGE_NT_SIGNATURE) {
+		Log(LOG_ERROR, "[GetProgramImports] Not valid nt headers");
+		CloseHandle(pHandle);
+		return 0;
+	}
+
+	DWORD importDirRVA = imageNtHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress;
+
+	PIMAGE_IMPORT_DESCRIPTOR importTable = (PIMAGE_IMPORT_DESCRIPTOR)((BYTE*)pHandle + importDirRVA);
+
+	if (!importTable) {
+		Log(LOG_ERROR, "Import table address is null");
+		CloseHandle(pHandle);
+		return 0;
+	}
+
+	while (importTable->Name) {
+		const char* dllName = (const char*)((BYTE*)pHandle + importTable->Name);
+		Log(LOG_INFO, "[GetProgamImports] : Import name : %s", dllName);
+		
+		HMODULE hModule = LoadLibraryA(dllName);
+		if (hModule == NULL) {
+			Log(LOG_ERROR, "[GetProgamImports] : Error getting handle from %s", dllName);
+			CloseHandle(pHandle);
+			CloseHandle(hModule);
+			importTable++;
+			continue;
+		}
+		DWORD iltRVA = importTable->OriginalFirstThunk;
+		DWORD iatRVA = importTable->FirstThunk;
+
+		PIMAGE_THUNK_DATA thunkILT = (PIMAGE_THUNK_DATA)((BYTE*)pHandle + iltRVA);
+		PIMAGE_THUNK_DATA thunkIAT = (PIMAGE_THUNK_DATA)((BYTE*)pHandle + iatRVA);
+
+		while (thunkIAT->u1.AddressOfData) {
+			if (!(thunkILT->u1.Ordinal & IMAGE_ORDINAL_FLAG)) {
+				PIMAGE_IMPORT_BY_NAME importByName = (PIMAGE_IMPORT_BY_NAME)((BYTE*)pHandle + thunkILT->u1.AddressOfData);
+				const char* funcName = (const char*)(importByName->Name);
+				Log(LOG_SUCCESS, "Function name : %s", funcName);
+
+			}
+			thunkIAT++;
+			thunkILT++;
+		}
+	
+		importTable++;
+	}
+	return 1;
 }
