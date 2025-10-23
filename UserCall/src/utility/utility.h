@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip> 
 #include <unordered_map>
+#include <sstream>   
 #include "../Integrity/integrity.h"
 
 
@@ -15,6 +16,7 @@ enum LogLevel : int{
     LOG_SUCCESS,
     LOG_INFO,
 };
+
 
 class UtilityClass {
 public:
@@ -39,8 +41,13 @@ public:
     BOOL TamperCheck();
 
 
-
 private:
+
+    struct FunctInfo {
+        const char* modName;
+        BYTE* functionAddress;
+    };
+
     HMODULE g_ProcessHandle = nullptr;
     DWORD  g_Pid = 0;
     
@@ -49,6 +56,7 @@ private:
     std::array<BYTE, 32> g_ImportedModules;
     std::vector<MODULEENTRY32> g_ModuleList;
     std::vector<std::array<BYTE, 32>> g_Hashes;
+   std::unordered_map<std::string,FunctInfo> g_Imports;
     BOOL g_UtilityInitialized = 1;
 };
 

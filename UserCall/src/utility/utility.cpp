@@ -214,6 +214,13 @@ BOOL UtilityClass::TamperCheck() {
 	return TRUE;
 }
 
+static std::string HashToHex(const BYTE* hash, size_t len = 32) {
+	std::ostringstream oss;
+	for (size_t i = 0; i < len; ++i)
+		oss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+	return oss.str();
+}
+
 // Imports = Functions that the program takes from those DLLs
 BOOL UtilityClass::GetProgamImports() {
 	HMODULE pHandle = GetHandle();
@@ -269,13 +276,38 @@ BOOL UtilityClass::GetProgamImports() {
 
 		PIMAGE_THUNK_DATA thunkILT = (PIMAGE_THUNK_DATA)((BYTE*)pHandle + iltRVA);
 		PIMAGE_THUNK_DATA thunkIAT = (PIMAGE_THUNK_DATA)((BYTE*)pHandle + iatRVA);
-
 		while (thunkIAT->u1.AddressOfData) {
 			if (!(thunkILT->u1.Ordinal & IMAGE_ORDINAL_FLAG)) {
+				FunctInfo functStruct;
+				BYTE hash[32] = {};
+
 				PIMAGE_IMPORT_BY_NAME importByName = (PIMAGE_IMPORT_BY_NAME)((BYTE*)pHandle + thunkILT->u1.AddressOfData);
 				const char* funcName = (const char*)(importByName->Name);
-				Log(LOG_SUCCESS, "Function name : %s", funcName);
+				BYTE* funcAddress = (BYTE*)(GetProcAddress(hModule, funcName));
 
+				if (!funcAddress) {
+					Log(LOG_ERROR, "[GetProgamImports] : Function %s not found in module", funcName);
+					thunkIAT++;
+					thunkILT++;
+					continue;
+				}
+
+				if (!m_Integrity.CalculateHash(funcAddress, 20, hash)) {
+					Log(LOG_ERROR, "[GetProgamImports] : Error hashing %s", funcName);
+					thunkIAT++;
+					thunkILT++;
+					continue;
+				}
+
+				functStruct.functionAddress = funcAddress;
+				functStruct.modName = funcName;
+				functStruct.modName = dllName;
+
+				std::string hashHex = HashToHex(hash);
+
+				g_Imports[hashHex] = functStruct;
+
+				Log(LOG_SUCCESS, "Function name: %s from %s with hash %s at %p", funcName, dllName, hashHex.c_str(), funcAddress);
 			}
 			thunkIAT++;
 			thunkILT++;
