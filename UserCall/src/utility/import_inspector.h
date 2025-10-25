@@ -4,14 +4,16 @@
 #include <array>
 #include <string>
 
+
 struct FunctInfo {
-    const char* modName;
-    BYTE* functionAddress;
+    std::string dllName;
+    BYTE* funcAddr;
+    std::string funcName;
 };
 
-class ImportInspector {
+class ImportsInspector{
 public:
-    BOOL InspectImports(HMODULE baseModule);
+    BOOL Inspector(HMODULE baseModule);
     const std::unordered_map<std::string, FunctInfo>& GetImports() const;
 
 private:
